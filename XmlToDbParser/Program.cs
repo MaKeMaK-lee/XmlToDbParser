@@ -16,8 +16,10 @@ namespace XmlToDbParser
             if (xmlOrders == null)
                 return;
 
-            var list = xmlOrders.ToOrderList();
+            var list = xmlOrders.ToOrderListDatabaseBinded(database);
             database.Add(list);
+            database.Save();
+
 
         }
     }

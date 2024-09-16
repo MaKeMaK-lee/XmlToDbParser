@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using XmlToDbParser.Database;
 using XmlToDbParser.Entities;
 using XmlToDbParser.Entities.Xml;
 
@@ -32,11 +33,11 @@ namespace XmlToDbParser
             return item;
         }
 
-        public static List<Order> ToOrderList(this orders parsedOrders)
+        public static List<Order> ToOrderListDatabaseBinded(this orders parsedOrders, XmlToDbParserDatabase database)
         {
             var list = new List<Order>(parsedOrders.Items.Length);
-            var clients = new List<Client>(parsedOrders.Items.Length);
-            var products = new List<Product>(parsedOrders.Items.Length);
+            var clients = new List<Client>();
+            var products = new List<Product>();
 
             foreach (var parsedOrder in parsedOrders.Items)
             {
@@ -52,14 +53,18 @@ namespace XmlToDbParser
                             {
                                 OrderId = Int32.Parse(parsedOrder.no),
                                 ProductCount = Int32.Parse(parsedOrderProduct.quantity),
-                                Product = products.FirstOrDefault(e => e.IsEquivalentToMerge(parsedOrderProduct), products.AddGet(new()
+                                Product = database.TryGetProduct(parsedOrderProduct.name, double.Parse(parsedOrderProduct.price, CultureInfo.InvariantCulture))
+                                ?? products.FirstOrDefault(e => e.IsEquivalentToMerge(parsedOrderProduct),
+                                products.AddGet(new()
                                 {
                                     Article = parsedOrderProduct.name,
                                     Price = double.Parse(parsedOrderProduct.price, CultureInfo.InvariantCulture)
                                 }))
                             }
                         ).ToList(),
-                       Client = clients.FirstOrDefault(e => e.IsEquivalentToMerge(parsedOrder.user.Single()), clients.AddGet(new()
+                       Client = database.TryGetClient(parsedOrder.user.Single().email)
+                       ?? clients.FirstOrDefault(e => e.IsEquivalentToMerge(parsedOrder.user.Single()),
+                       clients.AddGet(new()
                        {
                            ContactInfo = new()
                            {

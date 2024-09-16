@@ -45,12 +45,16 @@ namespace XmlToDbParser.Database
 
 
 
+            modelBuilder.Entity<Product>()
+                .HasIndex(e => e.Article)
+                .IsUnique();
+
             modelBuilder.Entity<ContactInfo>()
-                .HasIndex(u => u.Email)
+                .HasIndex(e => e.Email)
                 .IsUnique();
 
             modelBuilder.Entity<OrderProduct>()
-                .Property(b => b.ProductCount)
+                .Property(e => e.ProductCount)
                 .HasDefaultValue(1);
         }
     }
