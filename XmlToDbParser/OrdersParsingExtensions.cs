@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
+using XmlToDbParser.Comparers;
 using XmlToDbParser.Database;
 using XmlToDbParser.Entities;
 using XmlToDbParser.Entities.Xml;
@@ -66,6 +68,9 @@ namespace XmlToDbParser
 
         public static void AddOrUpdateTo(this orders parsedOrders, XmlToDbParserDatabase database)
         {
+            if (parsedOrders.CheckIdCollision())
+                throw new Exception("Повторение номеров заказов в файле");
+
             var ordersToUpdate = database.GetOrders(parsedOrders.Items.Select(parsedOrder => Int32.Parse(parsedOrder.no)));
 
             var list = new List<Order>(parsedOrders.Items.Length);
@@ -128,6 +133,12 @@ namespace XmlToDbParser
 
             database.Add(list);
             database.Save();
+        }
+
+        public static bool CheckIdCollision(this orders parsedOrders)
+        {
+            var set = new HashSet<ordersOrder>(parsedOrders.Items.Length, new ParsedOrderComparerById());
+            return !parsedOrders.Items.All(set.Add);
         }
     }
 }
