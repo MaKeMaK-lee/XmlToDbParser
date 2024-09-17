@@ -1,4 +1,5 @@
-﻿using XmlToDbParser.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using XmlToDbParser.Entities;
 
 namespace XmlToDbParser.Database
 {
@@ -16,6 +17,14 @@ namespace XmlToDbParser.Database
         public void Add(IEnumerable<Order> entities)
         {
             _dbContext.AddRange(entities);
+        }
+
+        public IEnumerable<Order> GetOrders(IEnumerable<int> ids)
+        {
+            return _dbContext.Orders
+                .Include(e => e.Client.ContactInfo)
+                .Include(e => e.OrderProducts).ThenInclude(e => e.Product)
+                .Where(e => ids.Contains(e.Id));
         }
 
         public Product? TryGetProduct(string article, double price)
